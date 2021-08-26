@@ -3,6 +3,8 @@ use crate::prelude::*;
 #[system]
 #[read_component(Point)]
 #[read_component(Player)]
+#[read_component(Enemy)]
+#[write_component(Health)]
 pub fn player_input(
     ecs: &mut SubWorld,
     commands: &mut CommandBuffer,
@@ -12,6 +14,8 @@ pub fn player_input(
     let mut players = <(Entity, &Point)>::query().filter(component::<Player>());
 
     if let Some(key) = key {
+        let mut did_something = false;
+
         let delta = match key {
             VirtualKeyCode::Left => Point::new(-1, 0),
             VirtualKeyCode::Right => Point::new(1, 0),
@@ -20,16 +24,52 @@ pub fn player_input(
             _ => Point::new(0, 0),
         };
 
-        players.iter(ecs).for_each(|(entity, pos)| {
-            let destination = *pos + delta;
-            commands.push((
-                (),
-                WantsToMove {
-                    entity: *entity,
-                    destination,
-                },
-            ));
-        });
+        // find players location and proposed destination
+        let (player_entity, destination) = players
+            .iter(ecs)
+            .find_map(|(entity, pos)| Some((*entity, *pos + delta)))
+            .unwrap();
+
+        let mut enemies = <(Entity, &Point)>::query().filter(component::<Enemy>());
+        if delta.x != 0 || delta.y != 0 {
+            let mut hit_something = false;
+            enemies
+                .iter(ecs)
+                // find any enemies at the proposed loccation
+                .filter(|(_, pos)| **pos == destination)
+                .for_each(|(entity, _)| {
+                    // post attack command at list of enemies
+                    hit_something = true;
+                    did_something = true;
+                    commands.push((
+                        (),
+                        WantsToAttack {
+                            attacker: player_entity,
+                            victim: *entity,
+                        },
+                    ));
+                });
+
+            if !hit_something {
+                did_something = true;
+                commands.push((
+                    (),
+                    WantsToMove {
+                        entity: player_entity,
+                        destination,
+                    },
+                ));
+            }
+        }
+        if !did_something {
+            if let Ok(mut health) = ecs
+                .entry_mut(player_entity)
+                .unwrap()
+                .get_component_mut::<Health>()
+            {
+                health.current = i32::min(health.max, health.current + 1);
+            }
+        }
         *turn_state = TurnState::PlayerTurn;
     }
 }

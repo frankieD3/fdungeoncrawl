@@ -65,12 +65,23 @@ impl State {
 impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
         // clear layers
+        // map layer
         ctx.set_active_console(0);
         ctx.cls();
+        // player and monster layer
         ctx.set_active_console(1);
         ctx.cls();
+        // HUD layer
+        ctx.set_active_console(2);
+        ctx.cls();
+
         // When you insert ctx.key it replaces the existing key resource
         self.resources.insert(ctx.key);
+
+        // Get mouse position from the map(terminal) layer
+        ctx.set_active_console(0);
+        self.resources.insert(Point::from_tuple(ctx.mouse_pos()));
+
         // Execute Systems
         let current_state = self.resources.get::<TurnState>().unwrap().clone();
         match current_state {
@@ -92,14 +103,16 @@ impl GameState for State {
 
 fn main() -> BError {
     let context = BTermBuilder::new()
-        .with_title("Dungeon Crawler")
+        .with_title("FDungeon Crawler")
         .with_fps_cap(30.0)
         .with_dimensions(DISPLAY_WIDTH, DISPLAY_HEIGHT)
         .with_tile_dimensions(32, 32)
         .with_resource_path("resources/")
         .with_font("dungeonfont.png", 32, 32)
+        .with_font("terminal8x8.png", 8, 8)
         .with_simple_console(DISPLAY_WIDTH, DISPLAY_HEIGHT, "dungeonfont.png")
         .with_simple_console_no_bg(DISPLAY_WIDTH, DISPLAY_HEIGHT, "dungeonfont.png")
+        .with_simple_console_no_bg(SCREEN_WIDTH * 2, SCREEN_HEIGTH * 2, "terminal8x8.png")
         .build()?;
 
     main_loop(context, State::new())
