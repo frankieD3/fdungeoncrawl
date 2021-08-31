@@ -12,6 +12,48 @@ pub struct Map {
     pub tiles: Vec<TileType>,
 }
 
+impl Algorithm2D for Map {
+    // set dimensions of Map
+    fn dimensions(&self) -> Point {
+        Point::new(SCREEN_WIDTH, SCREEN_HEIGTH)
+    }
+
+    // reuse the map::in_bounds function to determine if a location is in the map
+    fn in_bounds(&self, point: Point) -> bool {
+        self.in_bounds(point)
+    }
+}
+
+impl BaseMap for Map {
+    // return a vector of tiles that can be exits for the tile indicated by idx(index)
+    fn get_available_exits(&self, idx: usize) -> SmallVec<[(usize, f32); 10]> {
+        let mut exits = SmallVec::new();
+        // get current x,y location
+        let location = self.index_to_point2d(idx);
+        // West(left)
+        if let Some(idx) = self.valid_exit(location, Point::new(-1, 0)) {
+            exits.push((idx, 1.0))
+        }
+        // East(Right)
+        if let Some(idx) = self.valid_exit(location, Point::new(1, 0)) {
+            exits.push((idx, 1.0))
+        }
+        // North(Up)
+        if let Some(idx) = self.valid_exit(location, Point::new(0, -1)) {
+            exits.push((idx, 1.0))
+        }
+        // Sourth(Down)
+        if let Some(idx) = self.valid_exit(location, Point::new(0, 1)) {
+            exits.push((idx, 1.0))
+        }
+        exits
+    }
+
+    // get Pythagorean distance between two map tiles
+    fn get_pathing_distance(&self, idx1: usize, idx2: usize) -> f32 {
+        DistanceAlg::Pythagoras.distance2d(self.index_to_point2d(idx1), self.index_to_point2d(idx2))
+    }
+}
 impl Map {
     pub fn new() -> Self {
         Self {
@@ -23,6 +65,7 @@ impl Map {
         point.x >= 0 && point.x < SCREEN_WIDTH && point.y >= 0 && point.y < SCREEN_HEIGTH
     }
 
+    // determine if the point is a valid tile to go to in the map
     pub fn can_enter_tile(&self, point: Point) -> bool {
         self.in_bounds(point)
             && (self.tiles[map_idx(point.x, point.y)] == TileType::Floor
@@ -34,6 +77,23 @@ impl Map {
             None
         } else {
             Some(map_idx(point.x, point.y))
+        }
+    }
+
+    // determine whether the location plus a direction point is a valid exit from the location
+    // if a valid direction return tile index
+    fn valid_exit(&self, loc: Point, delta: Point) -> Option<usize> {
+        let destination = loc + delta;
+        if self.in_bounds(destination) {
+            if self.can_enter_tile(destination) {
+                // can_enter_tile contains a call to in_bounds like above
+                let idx: usize = self.point2d_to_index(destination);
+                Some(idx)
+            } else {
+                None
+            }
+        } else {
+            None
         }
     }
 }

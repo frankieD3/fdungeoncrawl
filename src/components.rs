@@ -14,9 +14,6 @@ pub struct Player;
 pub struct Enemy;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct MovingRandomly;
-
-#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct WantsToMove {
     pub entity: Entity,
     pub destination: Point,
@@ -33,8 +30,23 @@ pub struct Health {
 #[derive(Clone, PartialEq)]
 pub struct Name(pub String);
 
+// Initiate an attack
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct WantsToAttack {
     pub attacker: Entity,
     pub victim: Entity,
 }
+
+// Monster attributes
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct MovingRandomly;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ChasingPlayer;
+
+//Game items
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Item;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AmuletOfYala;
