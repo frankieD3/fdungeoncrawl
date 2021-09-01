@@ -23,12 +23,10 @@ pub fn combat(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
             .unwrap()
             .get_component_mut::<Health>()
         {
-            println!("Heath before attack: {}", health.current);
             health.current -= 1;
             if health.current < 1 && !is_player {
                 commands.remove(*victim);
             }
-            println!("Heath after attack: {}", health.current);
         }
         commands.remove(*message);
     });

@@ -8,10 +8,10 @@ use crate::prelude::*;
 pub fn end_turn(ecs: &SubWorld, #[resource] turn_state: &mut TurnState) {
     let mut player_hp = <(&Health, &Point)>::query().filter(component::<Player>());
     let mut amulet = <&Point>::query().filter(component::<AmuletOfYala>());
-    let amulet_pos = amulet.iter(ecs).nth(0).unwrap();
+    let amulet_pos = amulet.iter(ecs).next().unwrap();
 
     // set the next turn state other than end of game conditions
-    let current_state = turn_state.clone();
+    let current_state = *turn_state;
     let mut new_state = match current_state {
         TurnState::AwaitingInput => return,
         TurnState::PlayerTurn => TurnState::MonsterTurn,
