@@ -4,6 +4,7 @@ mod map;
 mod map_builder;
 mod spawner;
 mod systems;
+mod test_harness;
 mod turn_state;
 
 mod prelude {
@@ -12,15 +13,16 @@ mod prelude {
     pub use legion::world::SubWorld;
     pub use legion::*;
     pub const SCREEN_WIDTH: i32 = 80;
-    pub const SCREEN_HEIGTH: i32 = 50;
+    pub const SCREEN_HEIGHT: i32 = 50;
     pub const DISPLAY_WIDTH: i32 = SCREEN_WIDTH / 2;
-    pub const DISPLAY_HEIGHT: i32 = SCREEN_HEIGTH / 2;
+    pub const DISPLAY_HEIGHT: i32 = SCREEN_HEIGHT / 2;
     pub use crate::camera::*;
     pub use crate::components::*;
     pub use crate::map::*;
     pub use crate::map_builder::*;
     pub use crate::spawner::*;
     pub use crate::systems::*;
+    pub use crate::test_harness::*;
     pub use crate::turn_state::*;
 }
 
@@ -40,14 +42,19 @@ impl State {
         let mut resources = Resources::default();
         let mut rng = RandomNumberGenerator::new();
         let map_builder = MapBuilder::new(&mut rng);
+        // display_cave(
+        //&map_name,
+        //&map_builder.map,
+        //&map_builder.player_start,
+        //            &map_builder.amulet_start,
+        //            &map_builder.monster_spawns,
+        //        );
         spawn_player(&mut ecs, map_builder.player_start);
         spawn_amulet_of_yala(&mut ecs, map_builder.amulet_start);
         map_builder
-            .rooms
+            .monster_spawns
             .iter()
-            .skip(1)
-            .map(|r| r.center())
-            .for_each(|pos| spawn_monster(&mut ecs, &mut rng, pos));
+            .for_each(|pos| spawn_monster(&mut ecs, &mut rng, *pos));
 
         resources.insert(map_builder.map);
         resources.insert(Camera::new(map_builder.player_start));
@@ -71,11 +78,9 @@ impl State {
         spawn_amulet_of_yala(&mut self.ecs, map_builder.amulet_start);
 
         map_builder
-            .rooms
+            .monster_spawns
             .iter()
-            .skip(1)
-            .map(|r| r.center())
-            .for_each(|pos| spawn_monster(&mut self.ecs, &mut rng, pos));
+            .for_each(|pos| spawn_monster(&mut self.ecs, &mut rng, *pos));
 
         self.resources.insert(map_builder.map);
         self.resources.insert(Camera::new(map_builder.player_start));
@@ -187,7 +192,7 @@ fn main() -> BError {
         .with_font("terminal8x8.png", 8, 8)
         .with_simple_console(DISPLAY_WIDTH, DISPLAY_HEIGHT, "dungeonfont.png")
         .with_simple_console_no_bg(DISPLAY_WIDTH, DISPLAY_HEIGHT, "dungeonfont.png")
-        .with_simple_console_no_bg(SCREEN_WIDTH * 2, SCREEN_HEIGTH * 2, "terminal8x8.png")
+        .with_simple_console_no_bg(SCREEN_WIDTH * 2, SCREEN_HEIGHT * 2, "terminal8x8.png")
         .build()?;
 
     main_loop(context, State::new())

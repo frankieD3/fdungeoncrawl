@@ -19,7 +19,7 @@ pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuff
 
     // search for player in the map
     let search_targets = vec![player_idx];
-    let dijkstra_map = DijkstraMap::new(SCREEN_WIDTH, SCREEN_HEIGTH, &search_targets, map, 1024.0); // Limit on size of map
+    let dijkstra_map = DijkstraMap::new(SCREEN_WIDTH, SCREEN_HEIGHT, &search_targets, map, 1024.0); // Limit on size of map
 
     // from the list of monsters still with a health component and have ChasingPlayer attribute
     movers.iter(ecs).for_each(|(entity, pos, _, fov)| {

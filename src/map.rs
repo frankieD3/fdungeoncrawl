@@ -1,5 +1,5 @@
 use crate::prelude::*;
-const NUM_TILES: usize = (SCREEN_WIDTH * SCREEN_HEIGTH) as usize;
+const NUM_TILES: usize = (SCREEN_WIDTH * SCREEN_HEIGHT) as usize;
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum TileType {
@@ -15,7 +15,7 @@ pub struct Map {
 impl Algorithm2D for Map {
     // set dimensions of Map
     fn dimensions(&self) -> Point {
-        Point::new(SCREEN_WIDTH, SCREEN_HEIGTH)
+        Point::new(SCREEN_WIDTH, SCREEN_HEIGHT)
     }
 
     // reuse the map::in_bounds function to determine if a location is in the map
@@ -67,7 +67,7 @@ impl Map {
     }
 
     pub fn in_bounds(&self, point: Point) -> bool {
-        point.x >= 0 && point.x < SCREEN_WIDTH && point.y >= 0 && point.y < SCREEN_HEIGTH
+        point.x >= 0 && point.x < SCREEN_WIDTH && point.y >= 0 && point.y < SCREEN_HEIGHT
     }
 
     // determine if the point is a valid tile to go to in the map

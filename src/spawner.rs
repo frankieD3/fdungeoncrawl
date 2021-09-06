@@ -9,8 +9,8 @@ pub fn spawn_player(ecs: &mut World, pos: Point) {
             glyph: to_cp437('@'),
         },
         Health {
-            current: 30,
-            max: 30, // GAME Wide constant?
+            current: 90,
+            max: 90, // GAME Wide constant?
         },
         FieldOfView::new(8),
     ));
