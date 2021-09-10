@@ -2,15 +2,15 @@ use crate::prelude::*;
 
 pub fn spawn_player(ecs: &mut World, pos: Point) {
     ecs.push((
-        Player,
+        Player { map_level: 0 },
         pos,
         Render {
             color: ColorPair::new(WHITE, BLACK),
             glyph: to_cp437('@'),
         },
         Health {
-            current: 90,
-            max: 90, // GAME Wide constant?
+            current: 30,
+            max: 30, // GAME Wide constant?
         },
         FieldOfView::new(8),
     ));

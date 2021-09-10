@@ -34,7 +34,18 @@ pub fn hud(ecs: &SubWorld) {
         ColorPair::new(WHITE, RED),
     );
 
-    // [2] Print Inventory
+    // [2] Pring level #
+    let (player, map_level) = <(Entity, &Player)>::query()
+        .iter(ecs)
+        .find_map(|(entity, player)| Some((*entity, player.map_level)))
+        .unwrap();
+
+    draw_batch.print_color_right(
+        Point::new(SCREEN_WIDTH * 2, 1),
+        format!("Dungeon level: {}", map_level + 1),
+        ColorPair::new(YELLOW, BLACK),
+    );
+    // [3] Print Inventory
     //
     let player = <(Entity, &Player)>::query()
         .iter(ecs)

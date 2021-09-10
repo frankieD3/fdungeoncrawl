@@ -15,6 +15,7 @@ pub fn display_cave(
     map.tiles.iter().enumerate().for_each(|(idx, t)| match *t {
         TileType::Floor => output[idx] = '.',
         TileType::Wall => output[idx] = '#',
+        TileType::Exit => output[idx] = '>',
     });
 
     output[map.point2d_to_index(*player_start)] = '@';
@@ -35,14 +36,15 @@ pub fn display_cave(
                 '@' => print!("{}", "@".bright_yellow()),
                 'M' => print!("{}", "M".bright_red()),
                 'A' => print!("{}", "A".bright_magenta()),
+                '>' => print!("{}", ">".bright_magenta()),
                 _ => print!("{}", ".".truecolor(64, 64, 64)),
             }
         }
         println!("");
     }
 
-    let mut ignore_me = String::new();
-    stdin()
-        .read_line(&mut ignore_me)
-        .expect("Failed to read line");
+    //let mut ignore_me = String::new();
+    //stdin()
+    //.read_line(&mut ignore_me)
+    //.expect("Failed to read line");
 }
