@@ -5,7 +5,7 @@ use crate::prelude::*;
 #[read_component(Player)]
 #[write_component(Health)]
 #[read_component(Damage)]
-#[read_component(Carried)]
+#[read_component(Equipped)]
 pub fn combat(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
     let mut attackers = <(Entity, &WantsToAttack)>::query();
 
@@ -32,10 +32,10 @@ pub fn combat(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
             0
         };
 
-        // get the base damge associated with weapons carried
-        let weapon_damage: i32 = <(&Carried, &Damage)>::query()
+        // get the base damage associated with weapons equipped
+        let weapon_damage: i32 = <(&Equipped, &Damage)>::query()
             .iter(ecs)
-            .filter(|(carried, _)| carried.0 == *attacker)
+            .filter(|(equipped, _)| equipped.0 == *attacker)
             .map(|(_, dmg)| dmg.0)
             .sum();
 
@@ -48,6 +48,7 @@ pub fn combat(ecs: &mut SubWorld, commands: &mut CommandBuffer) {
         {
             health.current -= final_damage;
             if health.current < 1 && !is_player {
+                // victim is a  monster
                 commands.remove(*victim);
             }
         }

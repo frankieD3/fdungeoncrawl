@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use crate::systems::menu;
 
 #[system]
 #[read_component(Point)]
@@ -7,6 +8,7 @@ use crate::prelude::*;
 #[write_component(Health)]
 #[read_component(Item)]
 #[read_component(Carried)]
+#[read_component(Equipped)]
 #[read_component(Weapon)]
 pub fn player_input(
     ecs: &mut SubWorld,
@@ -14,132 +16,95 @@ pub fn player_input(
     #[resource] key: &Option<VirtualKeyCode>,
     #[resource] turn_state: &mut TurnState,
 ) {
-    let mut players = <(Entity, &Point)>::query().filter(component::<Player>());
+    match *turn_state {
+        TurnState::Pause => menu::pause_menu_input(ecs, key, turn_state),
+        _ => {
+            let mut players = <(Entity, &Point)>::query().filter(component::<Player>());
 
-    if let Some(key) = key {
-        let mut did_something = false;
+            if let Some(key) = key {
+                let mut did_something = false;
 
-        let delta = match key {
-            VirtualKeyCode::Left => Point::new(-1, 0),
-            VirtualKeyCode::Right => Point::new(1, 0),
-            VirtualKeyCode::Up => Point::new(0, -1),
-            VirtualKeyCode::Down => Point::new(0, 1),
-            VirtualKeyCode::G => {
-                //Grab item
-                let (player, player_pos) = players
-                    .iter(ecs)
-                    .find_map(|(entity, pos)| Some((*entity, *pos)))
-                    .unwrap();
-                let mut items = <(Entity, &Item, &Point)>::query();
-                items
-                    .iter(ecs)
-                    .filter(|(_enity, _item, &item_pos)| item_pos == player_pos)
-                    .for_each(|(entity, _item, _item_pos)| {
-                        commands.remove_component::<Point>(*entity);
-                        commands.add_component(*entity, Carried(player));
-                        if let Ok(e) = ecs.entry_ref(*entity) {
-                            if e.get_component::<Weapon>().is_ok() {
-                                <(Entity, &Carried, &Weapon)>::query()
-                                    .iter(ecs)
-                                    .filter(|(_, c, _)| c.0 == player)
-                                    .for_each(|(e, c, w)| {
-                                        commands.remove(*e);
-                                    })
-                            }
+                let delta = match key {
+                    // Movement keys
+                    VirtualKeyCode::Left => Point::new(-1, 0),
+                    VirtualKeyCode::Right => Point::new(1, 0),
+                    VirtualKeyCode::Up => Point::new(0, -1),
+                    VirtualKeyCode::Down => Point::new(0, 1),
+                    // Pause key
+                    VirtualKeyCode::Escape => {
+                        *turn_state = TurnState::Pause;
+                        Point::zero()
+                    }
+                    // Pick up item
+                    VirtualKeyCode::G => {
+                        //Grab item
+                        let (player, player_pos) = players
+                            .iter(ecs)
+                            .find_map(|(entity, pos)| Some((*entity, *pos)))
+                            .unwrap();
+                        let mut items = <(Entity, &Item, &Point)>::query();
+                        items
+                            .iter(ecs)
+                            .filter(|(_enity, _item, &item_pos)| item_pos == player_pos)
+                            .for_each(|(entity, _item, _item_pos)| {
+                                commands.remove_component::<Point>(*entity);
+                                commands.add_component(*entity, Carried(player));
+                            });
+
+                        Point::new(0, 0)
+                    }
+                    // Inventory keys
+                    VirtualKeyCode::Key1 => use_items::use_item(0, ecs, commands),
+                    VirtualKeyCode::Key2 => use_items::use_item(1, ecs, commands),
+                    VirtualKeyCode::Key3 => use_items::use_item(2, ecs, commands),
+                    VirtualKeyCode::Key4 => use_items::use_item(3, ecs, commands),
+                    VirtualKeyCode::Key5 => use_items::use_item(4, ecs, commands),
+                    VirtualKeyCode::Key6 => use_items::use_item(5, ecs, commands),
+                    VirtualKeyCode::Key7 => use_items::use_item(6, ecs, commands),
+                    VirtualKeyCode::Key8 => use_items::use_item(7, ecs, commands),
+                    _ => Point::new(0, 0),
+                };
+
+                if *turn_state != TurnState::Pause {
+                    // find players location and proposed destination
+                    let (player_entity, destination) = players
+                        .iter(ecs)
+                        .find_map(|(entity, pos)| Some((*entity, *pos + delta)))
+                        .unwrap();
+
+                    let mut enemies = <(Entity, &Point)>::query().filter(component::<Enemy>());
+                    if delta.x != 0 || delta.y != 0 {
+                        let mut hit_something = false;
+                        enemies
+                            .iter(ecs)
+                            // find any enemies at the proposed loccation
+                            .filter(|(_, pos)| **pos == destination)
+                            .for_each(|(entity, _)| {
+                                // post attack command at list of enemies
+                                hit_something = true;
+                                did_something = true;
+                                commands.push((
+                                    (),
+                                    WantsToAttack {
+                                        attacker: player_entity,
+                                        victim: *entity,
+                                    },
+                                ));
+                            });
+
+                        if !hit_something {
+                            commands.push((
+                                (),
+                                WantsToMove {
+                                    entity: player_entity,
+                                    destination,
+                                },
+                            ));
                         }
-                    });
-
-                Point::new(0, 0)
-            }
-            // Inventory keys
-            VirtualKeyCode::Key1 => use_item(0, ecs, commands),
-            VirtualKeyCode::Key2 => use_item(1, ecs, commands),
-            VirtualKeyCode::Key3 => use_item(2, ecs, commands),
-            VirtualKeyCode::Key4 => use_item(3, ecs, commands),
-            VirtualKeyCode::Key5 => use_item(4, ecs, commands),
-            VirtualKeyCode::Key6 => use_item(5, ecs, commands),
-            VirtualKeyCode::Key7 => use_item(6, ecs, commands),
-            VirtualKeyCode::Key8 => use_item(7, ecs, commands),
-            _ => Point::new(0, 0),
-        };
-
-        // find players location and proposed destination
-        let (player_entity, destination) = players
-            .iter(ecs)
-            .find_map(|(entity, pos)| Some((*entity, *pos + delta)))
-            .unwrap();
-
-        let mut enemies = <(Entity, &Point)>::query().filter(component::<Enemy>());
-        if delta.x != 0 || delta.y != 0 {
-            let mut hit_something = false;
-            enemies
-                .iter(ecs)
-                // find any enemies at the proposed loccation
-                .filter(|(_, pos)| **pos == destination)
-                .for_each(|(entity, _)| {
-                    // post attack command at list of enemies
-                    hit_something = true;
-                    did_something = true;
-                    commands.push((
-                        (),
-                        WantsToAttack {
-                            attacker: player_entity,
-                            victim: *entity,
-                        },
-                    ));
-                });
-
-            if !hit_something {
-                did_something = true;
-                commands.push((
-                    (),
-                    WantsToMove {
-                        entity: player_entity,
-                        destination,
-                    },
-                ));
+                    }
+                    *turn_state = TurnState::PlayerTurn;
+                }
             }
         }
-        //       if !did_something {
-        //if let Ok(mut health) = ecs
-        //.entry_mut(player_entity)
-        //.unwrap()
-        //.get_component_mut::<Health>()
-        //{
-        //health.current = i32::min(health.max, health.current + 1);
-        //}
-        //}
-        *turn_state = TurnState::PlayerTurn;
     }
-}
-
-fn use_item(
-    n: usize, // item key  Warning mind indexing
-    ecs: &mut SubWorld,
-    commands: &mut CommandBuffer, // Command Buffer for adding actions
-) -> Point {
-    // [1] Find player entity
-    let player_entity = <(Entity, &Player)>::query()
-        .iter(ecs)
-        .find_map(|(entity, _player)| Some(*entity))
-        .unwrap();
-
-    // [2] find all items carried by the player
-    let item_entity = <(Entity, &Item, &Carried)>::query()
-        .iter(ecs)
-        .filter(|(_, _, carried)| carried.0 == player_entity)
-        .enumerate()
-        .filter(|(item_count, (_, _, _))| *item_count == n) // (counter, (Entity, Item, Carrried))
-        .find_map(|(_, (item_entity, _, _))| Some(*item_entity));
-
-    if let Some(item_entity) = item_entity {
-        commands.push((
-            (),
-            ActivateItem {
-                used_by: player_entity,
-                item: item_entity,
-            },
-        ));
-    }
-    Point::zero()
 }

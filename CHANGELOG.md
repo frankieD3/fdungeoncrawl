@@ -9,19 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Plan a level editor
 - Reorganize where some long term files reside in the tree structure
-- Fix EmptyArchitect warning
-- move display_cave call to main and reset_game_state
-- enlarge font fop HUD+
-- calls to spawn_level has a last argument not dependent on NUM_MOUN
-- Exit Game option
-- Begin Game option
+- calls to spawn_level has a last argument not dependent on NUM_MONSTERS
 - Save level function
 - Save game function
 - Up a level function
 - Understand ron crate with respect to crashes when .ron file has a wrong field
-- Show weapon equipped
+- Need scaling factor between HUD layer and Map layer
+- In inventory list combine like items and enumerate
+- using Dungeon Map revealed wrong theme?
+- improve start up time, remove map generation before Begin Game Screen
+- Address Warnings
 
-## [0.1.2] - 2021=09-13
+## [0.1.3]
+
+## added
+
+- List equipped items
+- moved hud_display_main_menu call to hud::display_main_menu
+- Exit Game option
+- enlarge font for HUD+
+- Combined State/victory and State/game_over into one function in main.rs, State/game_over
+- Play Game Screen
+- Fix EmptyArchitect warning
+- Adjust tooltip draw location for larger HUD font set
+- Implement Esc( Pause) and then Continue current game
+- get rid of State in display_main_menu by add_system(display_main_menu)??
+- move display_cave call to main and reset_game_state
+
+## [0.1.2] - 2021-09-13
 
 ## Added
 

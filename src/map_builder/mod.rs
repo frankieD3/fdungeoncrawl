@@ -12,8 +12,6 @@ use prefab::apply_prefab;
 use rooms::RoomsArchitect;
 use themes::*;
 
-use empty::EmptyArchitect;
-
 trait MapArchitect {
     fn new(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder;
 }
@@ -63,6 +61,17 @@ impl MapBuilder {
             &mb.monster_spawns,
         );
         mb
+    }
+
+    pub fn default() -> Self {
+        Self {
+            map: Map::new(),
+            rooms: Vec::default(),
+            monster_spawns: Vec::default(),
+            player_start: Point::zero(),
+            amulet_start: Point::zero(),
+            theme: DungeonTheme::new(), //may want a default
+        }
     }
 
     fn fill(&mut self, tile: TileType) {

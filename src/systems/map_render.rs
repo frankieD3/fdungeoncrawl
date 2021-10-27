@@ -16,7 +16,7 @@ pub fn map_render(
     let player_fov = fov.iter(ecs).nth(0).unwrap();
 
     // Start a new batch of drawings
-    draw_batch.target(0);
+    draw_batch.target(MAP_LAYER);
     for y in camera.top_y..camera.bottom_y {
         for x in camera.left_x..camera.right_x {
             let pt = Point::new(x, y);

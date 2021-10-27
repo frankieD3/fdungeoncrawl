@@ -16,6 +16,7 @@ Templates(
             provides: Some([ ("Healing", 2)]),
             frequency: 2
         ),
+        // Weapons
         Template(
             entity_type: Item,
             name :  "Rusty Sword", 
@@ -24,7 +25,6 @@ Templates(
             frequency: 1,
             base_damage: Some(1)
         ),
-        // Weapons
         Template(
             entity_type: Item,
             name :  "Shiny Sword", 
@@ -35,7 +35,7 @@ Templates(
         ),
         Template(
             entity_type: Item,
-            name :  "Rusty Sword", 
+            name :  "Huge Sword", 
             glyph : '/', 
             levels : [ 1, 2 ],
             frequency: 1,

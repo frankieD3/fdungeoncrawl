@@ -5,13 +5,14 @@ mod combat;
 mod end_turn;
 mod entity_render;
 mod fov;
-mod hud;
+pub mod hud;
 mod map_render;
+pub mod menu;
 mod movement;
 mod player_input;
 mod random_move;
 mod tooltips;
-mod use_items;
+pub mod use_items;
 
 pub fn build_input_scheduler() -> Schedule {
     Schedule::builder()
@@ -57,4 +58,16 @@ pub fn build_monster_scheduler() -> Schedule {
         .add_system(hud::hud_system())
         .add_system(end_turn::end_turn_system())
         .build()
+}
+
+pub fn build_base_input_scheduler() -> Schedule {
+    Schedule::builder()
+        .add_system(menu::main_menu_input_system())
+        .build()
+}
+pub fn build_base_player_scheduler() -> Schedule {
+    Schedule::builder().build()
+}
+pub fn build_base_monster_scheduler() -> Schedule {
+    Schedule::builder().build()
 }
